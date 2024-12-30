@@ -38,14 +38,14 @@
 
 /* yellow */
 #color-yellow .step {
-    background-color: #fff59d;
-    border: 2px solid #ffe600;
+    background-color: #fbf5c2;
+    border: 2px solid #dccd41;
 }
 #color-yellow .step.active {
-    background-color: #ffe922;
+    background-color: #f4e34b;
 }
 #color-yellow .step.playing {
-    outline: 2px solid #ffe600;
+    outline: 2px solid #d2c232;
 }
 
 /* purple */
@@ -62,19 +62,19 @@
 
 /* orange */
 #color-orange .step {
-    background-color: #ffe0b2;
+    background-color: #ffe7c4;
     border: 2px solid #ffab40;
 }
 #color-orange .step.active {
-    background-color: #ffcc80;
+    background-color: #ffbc58;
 }
 #color-orange .step.playing {
-    outline: 2px solid #ffab40;
+    outline: 2px solid #f1a037;
 }
 
 /* pink */
 #color-pink .step {
-    background-color: #f8bbd0;
+    background-color: #ffd5e4;
     border: 2px solid #f06292;
 }
 #color-pink .step.active {
