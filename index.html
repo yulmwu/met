@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Rhythm Sequencer</title>
+        <link rel="stylesheet" href="colors.css" />
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                background-color: #f4f4f9;
+                color: #333;
+            }
+
+            .sequencer {
+                display: inline-block;
+                margin: 20px auto;
+            }
+
+            #metronome {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin: 20px 0;
+            }
+
+            .beat {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background-color: #ccc;
+                transition: background-color 0.1s;
+            }
+
+            .beat.active {
+                background-color: #4caf50;
+            }
+
+            .track {
+                display: flex;
+                margin-bottom: 10px;
+                align-items: center;
+            }
+
+            .track span {
+                width: 100px;
+                text-align: left;
+            }
+
+            .steps {
+                display: flex;
+                gap: 20px;
+            }
+
+            .measure {
+                display: flex;
+                gap: 5px;
+            }
+
+            .step {
+                width: 30px;
+                height: 30px;
+                margin: 0;
+                border-radius: 5px;
+                background-color: #fff;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            .step.active {
+                background-color: #4caf50;
+            }
+
+            button {
+                margin-top: 20px;
+                padding: 10px 20px;
+                border: none;
+                background-color: #4caf50;
+                color: #fff;
+                font-size: 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            button:hover {
+                background-color: #45a049;
+            }
+
+            .tempo-input {
+                border: none;
+                border-bottom: 1px solid #ccc;
+                text-align: center;
+                font-size: 16px;
+                width: 50px;
+                margin: 0 5px;
+                background-color: transparent;
+            }
+
+            .tempo-input:focus {
+                outline: none;
+            }
+
+            .track-label {
+                margin-right: 10px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Rhythm Sequencer (16 beat)</h1>
+        <div id="metronome">
+            <div class="beat"></div>
+            <div class="beat"></div>
+            <div class="beat"></div>
+            <div class="beat"></div>
+        </div>
+        <div class="sequencer"></div>
+        <div>
+            <button id="play-button">Play</button>
+            <button id="reset-button">Reset</button>
+        </div>
+        <div>
+            <h2 id="tempo-label">Tempo</h2>
+            <input type="text" class="tempo-input" value="60" id="tempo-input" />
+        </div>
+        <div>
+            <button id="tempo-inc">+</button>
+            <button id="tempo-dec">-</button>
+        </div>
+
+        <script>
+            function createTrack(trackName, color) {
+                const track = document.createElement('div')
+                track.classList.add('track')
+                track.id = color
+
+                const trackLabel = document.createElement('span')
+                trackLabel.textContent = trackName.charAt(0).toUpperCase() + trackName.slice(1)
+                trackLabel.classList.add('track-label')
+                trackLabel.id = trackName
+                track.appendChild(trackLabel)
+
+                const steps = document.createElement('div')
+                steps.classList.add('steps')
+                track.appendChild(steps)
+
+                for (let i = 0; i < 4; i++) {
+                    const measure = document.createElement('div')
+                    measure.classList.add('measure')
+                    steps.appendChild(measure)
+
+                    for (let j = 0; j < 4; j++) {
+                        const step = document.createElement('div')
+                        step.classList.add('step')
+                        step.dataset.sound = trackName
+                        step.dataset.index = i * 4 + j
+                        measure.appendChild(step)
+                    }
+                }
+
+                return track
+            }
+
+            const sequencer = document.querySelector('.sequencer')
+
+            sequencer.appendChild(createTrack('bass', 'color-red'))
+            sequencer.appendChild(createTrack('clap', 'color-blue'))
+            sequencer.appendChild(createTrack('hihat', 'color-green'))
+            sequencer.appendChild(createTrack('kick', 'color-yellow'))
+            sequencer.appendChild(createTrack('openhat', 'color-purple'))
+            sequencer.appendChild(createTrack('ride', 'color-orange'))
+            sequencer.appendChild(createTrack('snare', 'color-pink'))
+            sequencer.appendChild(createTrack('tink', 'color-grey'))
+            sequencer.appendChild(createTrack('tom', 'color-brown'))
+
+            const steps = document.querySelectorAll('.step')
+            const playButton = document.getElementById('play-button')
+            const resetButton = document.getElementById('reset-button')
+            const metronomeBeats = document.querySelectorAll('#metronome .beat')
+            const trackLabels = document.querySelectorAll('.track-label')
+
+            const tempoLabel = document.getElementById('tempo-label')
+            const tempoInc = document.getElementById('tempo-inc')
+            const tempoDec = document.getElementById('tempo-dec')
+            const tempoInput = document.getElementById('tempo-input')
+
+            let currentStep = 0
+            let isPlaying = false
+            let bpm = 60
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+
+            const sounds_filename = ['bass', 'clap', 'hihat', 'kick', 'openhat', 'ride', 'snare', 'tink', 'tom']
+            const sounds = {}
+            sounds_filename.forEach((sound) => {
+                fetch(`./sounds/${sound}.wav`)
+                    .then((response) => response.arrayBuffer())
+                    .then((arrayBuffer) => audioContext.decodeAudioData(arrayBuffer))
+                    .then((audioBuffer) => {
+                        sounds[sound] = audioBuffer
+                        console.log('loaded')
+                    })
+            })
+
+            steps.forEach((step) => {
+                step.addEventListener('click', () => {
+                    step.classList.toggle('active')
+                })
+            })
+
+            function updateMetronome(step) {
+                metronomeBeats.forEach((beat, index) => {
+                    beat.classList.toggle('active', index === step % 4)
+                })
+            }
+
+            function playSound(sound) {
+                const source = audioContext.createBufferSource()
+                source.buffer = sounds[sound]
+                source.connect(audioContext.destination)
+                source.start()
+            }
+
+            function playSequencer() {
+                const totalSteps = 16
+
+                if (!isPlaying) return
+
+                updateMetronome(Math.floor(currentStep / 4))
+
+                steps.forEach((step) => step.classList.remove('playing'))
+                const currentSteps = document.querySelectorAll(`[data-index="${currentStep}"]`)
+                currentSteps.forEach((step) => {
+                    step.classList.add('playing')
+
+                    if (step.classList.contains('active')) {
+                        playSound(step.dataset.sound)
+                    }
+                })
+
+                currentStep = (currentStep + 1) % totalSteps
+
+                const interval = ((60 / bpm) * 1000) / 4
+                setTimeout(playSequencer, interval)
+            }
+
+            playButton.addEventListener('click', () => {
+                isPlaying = !isPlaying
+                if (isPlaying) {
+                    playButton.textContent = 'Stop'
+                    playSequencer()
+                } else {
+                    playButton.textContent = 'Play'
+                }
+            })
+
+            resetButton.addEventListener('click', () => {
+                steps.forEach((step) => {
+                    step.classList.remove('playing')
+                })
+
+                isPlaying = false
+                currentStep = 0
+                metronomeBeats.forEach((beat) => {
+                    beat.classList.remove('active')
+                })
+            })
+
+            tempoLabel.textContent = `Tempo: ${bpm}`
+
+            tempoInc.addEventListener('click', () => {
+                if (bpm < 240) {
+                    bpm += 5
+                    tempoLabel.textContent = `Tempo: ${bpm}`
+                }
+            })
+
+            tempoDec.addEventListener('click', () => {
+                if (bpm > 40) {
+                    bpm -= 5
+                    tempoLabel.textContent = `Tempo: ${bpm}`
+                }
+            })
+
+            trackLabels.forEach((trackLabel) => {
+                trackLabel.addEventListener('click', () => {
+                    playSound(trackLabel.id)
+                })
+            })
+
+            tempoInput.addEventListener('change', () => {
+                const value = Number(tempoInput.value)
+                if (value) {
+                    bpm = value
+                    tempoLabel.textContent = `Tempo: ${bpm}`
+                } else {
+                    tempoInput.value = bpm
+                }
+            })
+        </script>
+    </body>
+</html>
