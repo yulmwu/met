@@ -23,6 +23,8 @@
             .sequencer {
                 display: inline-block;
                 margin: 20px auto;
+                overflow-x: scroll;
+                width: 90%;
             }
 
             #metronome {
@@ -45,7 +47,8 @@
             }
 
             .track {
-                display: flex;
+                display: grid;
+                grid-template-columns: 100px 1fr;
                 padding-bottom: 15px;
                 align-items: center;
             }
@@ -77,6 +80,11 @@
 
             .step.active {
                 background-color: #4caf50;
+            }
+
+            .info-bar {
+                width: 34px;
+                margin: 0;
             }
 
             button {
@@ -133,7 +141,8 @@
             <div class="beat"></div>
             <div class="beat"></div>
         </div>
-        <div class="sequencer"></div>
+        <div class="sequencer">
+        </div>
         <div>
             <button id="play-button">Play</button>
             <button id="go-to-beginning-button">Go to beginning</button>
