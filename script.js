@@ -1,3 +1,11 @@
+let params = {};
+
+window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, (str, key, value) => {
+    params[key] = value
+});
+
+let bar = params['bar'] ? parseInt(params['bar']) : 4
+
 function createTrack(trackName, color) {
     const track = document.createElement('div')
     track.classList.add('track')
@@ -13,7 +21,7 @@ function createTrack(trackName, color) {
     steps.classList.add('steps')
     track.appendChild(steps)
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < bar * 4; i++) {
         const measure = document.createElement('div')
         measure.classList.add('measure')
         steps.appendChild(measure)
@@ -30,8 +38,45 @@ function createTrack(trackName, color) {
     return track
 }
 
+function createBarsInfo() {
+    const track = document.createElement('div')
+    track.classList.add('track')
+
+    const trackLabel = document.createElement('span')
+    trackLabel.classList.add('track-label')
+    track.appendChild(trackLabel)
+
+    const steps = document.createElement('div')
+    steps.classList.add('steps')
+    track.appendChild(steps)
+
+    for (let i = 0; i < bar; i++) {
+        for (let j = 0; j < 4; j++) {
+            const measure = document.createElement('div')
+            measure.classList.add('measure')
+            steps.appendChild(measure)
+
+            for (let k = 0; k < 4; k++) {
+                if (k == 0 && j == 0) {
+                    const infoBar = document.createElement('div')
+                    infoBar.classList.add('info-bar')
+                    infoBar.textContent = i + 1
+                    measure.appendChild(infoBar)
+                } else {
+                    const infoBar = document.createElement('div')
+                    infoBar.classList.add('info-bar')
+                    measure.appendChild(infoBar)
+                }
+            }
+        }
+    }
+
+    return track
+}
+
 const sequencer = document.querySelector('.sequencer')
 
+sequencer.appendChild(createBarsInfo())
 sequencer.appendChild(createTrack('bass', 'color-red'))
 sequencer.appendChild(createTrack('clap', 'color-blue'))
 sequencer.appendChild(createTrack('hihat', 'color-green'))
@@ -114,7 +159,7 @@ function playSound(sound) {
 }
 
 function playSequencer() {
-    const totalSteps = 16
+    const totalSteps = bar * 16 // 16 beats
 
     if (!isPlaying) return
 
